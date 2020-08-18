@@ -15,24 +15,55 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package cn.smallbun.screw.core.process;
+package cn.smallbun.screw.core.metadata.model;
 
-import cn.smallbun.screw.core.metadata.model.DataModel;
+import lombok.Data;
 
-import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
 
 /**
- * 构建
- * 通过表结构构建需要的数据bean
- * @author SanLi
- * Created by qinggang.zuo@gmail.com / 2689170096@qq.com on 2020/3/22 21:08
+ * PojoModel 定义一个pojo需要的一些属性
+ *
+ * @author liu·yu
+ * Created by 15952866402@163.com on 2020-08-14
  */
-public interface Process<T> extends Serializable {
+@Data
+public class PojoModel {
+
     /**
-     * 处理
-     *
-     * @return {@link DataModel}
-     * @throws Exception Exception
+     * 包名
      */
-    T process() throws Exception;
+    private String          packageName;
+
+    /**
+     * 类名
+     */
+    private String          className;
+
+    /**
+     * 数据库表名
+     */
+    private String          tableName;
+
+    /**
+     * 数据库注释
+     */
+    private String          remarks;
+
+    /**
+     * 是否使用lombok
+     */
+    private boolean         useLombok;
+
+    /**
+     * 需要import的类
+     */
+    private Set<String>     importList;
+
+    /**
+     * 对象的字段属性
+     */
+    private List<TypeModel> fieldList;
+
 }

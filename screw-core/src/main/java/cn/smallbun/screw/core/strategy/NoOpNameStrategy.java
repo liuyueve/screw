@@ -15,24 +15,34 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package cn.smallbun.screw.core.process;
-
-import cn.smallbun.screw.core.metadata.model.DataModel;
-
-import java.io.Serializable;
+package cn.smallbun.screw.core.strategy;
 
 /**
- * 构建
- * 通过表结构构建需要的数据bean
- * @author SanLi
- * Created by qinggang.zuo@gmail.com / 2689170096@qq.com on 2020/3/22 21:08
+ * 没有任何操作的命名策略
+ *
+ * @author liu·yu
+ * Created by 15952866402@163.com on 2020-08-17
  */
-public interface Process<T> extends Serializable {
-    /**
-     * 处理
-     *
-     * @return {@link DataModel}
-     * @throws Exception Exception
-     */
-    T process() throws Exception;
+public class NoOpNameStrategy implements NameStrategy {
+
+    @Override
+    public String transClassName(String name) {
+        return name;
+    }
+
+    @Override
+    public String transFieldName(String name, Class type) {
+        return name;
+    }
+
+    @Override
+    public String transSetName(String name, Class type) {
+        return "set" + name;
+    }
+
+    @Override
+    public String transGetName(String name, Class type) {
+        return "get" + name;
+    }
+
 }

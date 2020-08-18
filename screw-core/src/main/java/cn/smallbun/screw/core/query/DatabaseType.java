@@ -25,6 +25,7 @@ import cn.smallbun.screw.core.query.highgo.HigHgoDataBaseQuery;
 import cn.smallbun.screw.core.query.hsql.HsqlDataBaseQuery;
 import cn.smallbun.screw.core.query.mariadb.MariaDbDataBaseQuery;
 import cn.smallbun.screw.core.query.mysql.MySqlDataBaseQuery;
+import cn.smallbun.screw.core.query.mysql.MysqlTypeDialect;
 import cn.smallbun.screw.core.query.oracle.OracleDataBaseQuery;
 import cn.smallbun.screw.core.query.postgresql.PostgreSqlDataBaseQuery;
 import cn.smallbun.screw.core.query.sqlite.SqliteDataBaseQuery;
@@ -44,98 +45,104 @@ public enum DatabaseType implements Serializable {
                                                    * MYSQL
                                                    */
                                                   MYSQL("mysql", "MySql数据库",
-                                                        MySqlDataBaseQuery.class),
+                                                        MySqlDataBaseQuery.class,
+                                                        MysqlTypeDialect.class),
 
                                                   /**
                                                    * MARIA DB
                                                    */
                                                   MARIADB("mariadb", "MariaDB数据库",
-                                                          MariaDbDataBaseQuery.class),
+                                                          MariaDbDataBaseQuery.class, null),
 
                                                   /**
                                                    * ORACLE
                                                    */
                                                   ORACLE("oracle", "Oracle数据库",
-                                                         OracleDataBaseQuery.class),
+                                                         OracleDataBaseQuery.class, null),
 
                                                   /**
                                                    * DB2
                                                    */
-                                                  DB2("db2", "DB2数据库", Db2DataBaseQuery.class),
+                                                  DB2("db2", "DB2数据库", Db2DataBaseQuery.class,
+                                                      null),
 
                                                   /**
                                                    * H2
                                                    */
-                                                  H2("h2", "H2数据库", H2DataBaseQuery.class),
+                                                  H2("h2", "H2数据库", H2DataBaseQuery.class, null),
 
                                                   /**
                                                    * HSQL
                                                    */
-                                                  HSQL("hsql", "HSQL数据库", HsqlDataBaseQuery.class),
+                                                  HSQL("hsql", "HSQL数据库", HsqlDataBaseQuery.class,
+                                                       null),
 
                                                   /**
                                                    * SQLITE
                                                    */
                                                   SQLITE("sqlite", "SQLite数据库",
-                                                         SqliteDataBaseQuery.class),
+                                                         SqliteDataBaseQuery.class, null),
 
                                                   /**
                                                    * POSTGRE
                                                    */
                                                   POSTGRE_SQL("PostgreSql", "Postgre数据库",
-                                                              PostgreSqlDataBaseQuery.class),
+                                                              PostgreSqlDataBaseQuery.class, null),
 
                                                   /**
                                                    * SQL SERVER 2005
                                                    */
                                                   SQL_SERVER2005("sqlServer2005",
                                                                  "SQLServer2005数据库",
-                                                                 SqlServerDataBaseQuery.class),
+                                                                 SqlServerDataBaseQuery.class,
+                                                                 null),
 
                                                   /**
                                                    * SQLSERVER
                                                    */
                                                   SQL_SERVER("sqlserver", "SQLServer数据库",
-                                                             SqlServerDataBaseQuery.class),
+                                                             SqlServerDataBaseQuery.class, null),
 
                                                   /**
                                                    * DM
                                                    */
-                                                  DM("dm", "达梦数据库", DmDataBaseQuery.class),
+                                                  DM("dm", "达梦数据库", DmDataBaseQuery.class, null),
 
                                                   /**
                                                    * HIGHGO
                                                    */
                                                   HIGHGO("highgo", "瀚高数据库",
-                                                         HigHgoDataBaseQuery.class),
+                                                         HigHgoDataBaseQuery.class, null),
 
                                                   /**
                                                    * xugu
                                                    */
-                                                  XU_GU("xugu", "虚谷数据库", OtherDataBaseQuery.class),
+                                                  XU_GU("xugu", "虚谷数据库", OtherDataBaseQuery.class,
+                                                        null),
 
                                                   /**
                                                    * Kingbase
                                                    */
                                                   KINGBASE_ES("kingbasees", "人大金仓数据库",
-                                                              OtherDataBaseQuery.class),
+                                                              OtherDataBaseQuery.class, null),
 
                                                   /**
                                                    * Phoenix
                                                    */
                                                   PHOENIX("phoenix", "Phoenix HBase数据库",
-                                                          OtherDataBaseQuery.class),
+                                                          OtherDataBaseQuery.class, null),
 
                                                   /**
                                                    * CacheDB
                                                    */
                                                   CACHEDB("cachedb", "Cache 数据库",
-                                                          CacheDbDataBaseQuery.class),
+                                                          CacheDbDataBaseQuery.class, null),
 
                                                   /**
                                                    * UNKONWN DB
                                                    */
-                                                  OTHER("other", "其他数据库", OtherDataBaseQuery.class);
+                                                  OTHER("other", "其他数据库", OtherDataBaseQuery.class,
+                                                        null);
 
     /**
      * 数据库名称
@@ -154,16 +161,24 @@ public enum DatabaseType implements Serializable {
     private final Class<? extends DatabaseQuery> implClass;
 
     /**
+     * 类型转换方言
+     */
+    @Getter
+    private final Class<? extends TypeDialect>   transfer;
+
+    /**
      * 构造
      *
      * @param name  {@link String} 名称
      * @param desc  {@link String} 描述
      * @param query {@link Class}
      */
-    DatabaseType(String name, String desc, Class<? extends DatabaseQuery> query) {
+    DatabaseType(String name, String desc, Class<? extends DatabaseQuery> query,
+                 Class<? extends TypeDialect> transfer) {
         this.name = name;
         this.desc = desc;
         this.implClass = query;
+        this.transfer = transfer;
     }
 
     /**

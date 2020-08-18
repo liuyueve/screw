@@ -15,24 +15,17 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package cn.smallbun.screw.core.process;
+package cn.smallbun.screw.core.engine;
 
-import cn.smallbun.screw.core.metadata.model.DataModel;
-
-import java.io.Serializable;
+import cn.smallbun.screw.core.exception.ProduceException;
+import cn.smallbun.screw.core.metadata.model.PojoModel;
 
 /**
- * 构建
- * 通过表结构构建需要的数据bean
- * @author SanLi
- * Created by qinggang.zuo@gmail.com / 2689170096@qq.com on 2020/3/22 21:08
+ * @author liu·yu
+ * Created by 15952866402@163.com on 2020-08-14
  */
-public interface Process<T> extends Serializable {
-    /**
-     * 处理
-     *
-     * @return {@link DataModel}
-     * @throws Exception Exception
-     */
-    T process() throws Exception;
+public interface PojoEngine {
+
+    void produce(PojoModel info, String docName) throws ProduceException;
+
 }

@@ -20,17 +20,22 @@ package cn.smallbun.screw.core.process;
 import cn.smallbun.screw.core.Configuration;
 import cn.smallbun.screw.core.engine.EngineFileType;
 import cn.smallbun.screw.core.metadata.Column;
+import cn.smallbun.screw.core.metadata.Database;
 import cn.smallbun.screw.core.metadata.PrimaryKey;
 import cn.smallbun.screw.core.metadata.Table;
 import cn.smallbun.screw.core.metadata.model.ColumnModel;
 import cn.smallbun.screw.core.metadata.model.DataModel;
 import cn.smallbun.screw.core.metadata.model.TableModel;
+import cn.smallbun.screw.core.query.DatabaseQuery;
+import cn.smallbun.screw.core.query.DatabaseQueryFactory;
 import cn.smallbun.screw.core.util.Assert;
 import cn.smallbun.screw.core.util.BeanUtils;
 import cn.smallbun.screw.core.util.CollectionUtils;
+import cn.smallbun.screw.core.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +43,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static cn.smallbun.screw.core.constant.DefaultConstants.*;
 import static cn.smallbun.screw.core.util.BeanUtils.*;
 
 /**
@@ -46,41 +52,38 @@ import static cn.smallbun.screw.core.util.BeanUtils.*;
  * @author SanLi
  * Created by qinggang.zuo@gmail.com / 2689170096@qq.com on 2020/3/22 21:09
  */
-public abstract class AbstractProcess implements Process {
+public abstract class AbstractProcess<T> implements Process<T> {
     /**
      * LOGGER
      */
-    final Logger                                logger             = LoggerFactory
+    final Logger                                        logger             = LoggerFactory
         .getLogger(this.getClass());
     /**
      * 表信息缓存
      */
-    volatile Map<String, List<? extends Table>> tablesCaching      = new ConcurrentHashMap<>();
+    private volatile Map<String, List<? extends Table>> tablesCaching      = new ConcurrentHashMap<>();
     /**
      * 列信息缓存
      */
-    volatile Map<String, List<Column>>          columnsCaching     = new ConcurrentHashMap<>();
+    private volatile Map<String, List<Column>>          columnsCaching     = new ConcurrentHashMap<>();
     /**
      * 主键信息缓存
      */
-    volatile Map<String, List<PrimaryKey>>      primaryKeysCaching = new ConcurrentHashMap<>();
+    private volatile Map<String, List<PrimaryKey>>      primaryKeysCaching = new ConcurrentHashMap<>();
 
     /**
      * Configuration
      */
-    protected Configuration                     config;
-
-    private AbstractProcess() {
-    }
+    private ProcessConfig                               produceConfig;
 
     /**
      * 构造方法
      *
-     * @param configuration     {@link Configuration}
+     * @param configuration {@link Configuration}
      */
-    AbstractProcess(Configuration configuration) {
+    AbstractProcess(ProcessConfig configuration) {
         Assert.notNull(configuration, "Configuration can not be empty!");
-        this.config = configuration;
+        this.produceConfig = configuration;
     }
 
     /**
@@ -91,9 +94,8 @@ public abstract class AbstractProcess implements Process {
      * @return {@link List} 处理过后的数据
      * @see "1.0.3"
      */
-    protected List<TableModel> filterTables(List<TableModel> tables) {
-        ProcessConfig produceConfig = config.getProduceConfig();
-        if (!Objects.isNull(config) && !Objects.isNull(config.getProduceConfig())) {
+    private List<TableModel> filterTables(List<TableModel> tables) {
+        if (!Objects.isNull(produceConfig)) {
             //指定生成的表名、前缀、后缀任意不为空，按照指定表生成，其余不生成，不会在处理忽略表
             if (CollectionUtils.isNotEmpty(produceConfig.getDesignatedTableName())
                 //前缀
@@ -119,8 +121,7 @@ public abstract class AbstractProcess implements Process {
      */
     private List<TableModel> handleDesignated(List<TableModel> tables) {
         List<TableModel> tableModels = new ArrayList<>();
-        ProcessConfig produceConfig = this.config.getProduceConfig();
-        if (!Objects.isNull(config) && !Objects.isNull(produceConfig)) {
+        if (!Objects.isNull(produceConfig)) {
             //指定表名
             if (CollectionUtils.isNotEmpty(produceConfig.getDesignatedTableName())) {
                 List<String> list = produceConfig.getDesignatedTableName();
@@ -159,8 +160,7 @@ public abstract class AbstractProcess implements Process {
      * @return {@link List} 处理过后的数据
      */
     private List<TableModel> handleIgnore(List<TableModel> tables) {
-        ProcessConfig produceConfig = this.config.getProduceConfig();
-        if (!Objects.isNull(this.config) && !Objects.isNull(produceConfig)) {
+        if (!Objects.isNull(produceConfig)) {
             //处理忽略表名
             if (CollectionUtils.isNotEmpty(produceConfig.getIgnoreTableName())) {
                 List<String> list = produceConfig.getIgnoreTableName();
@@ -191,48 +191,108 @@ public abstract class AbstractProcess implements Process {
     }
 
     /**
-     *  优化数据
-     * @param dataModel {@link DataModel}
-     * @see "1.0.3"
+     * 获取表结构
+     *
+     * @return {@link List} 表结构
      */
-    public void optimizeData(DataModel dataModel) {
-        //trim
-        beanAttributeValueTrim(dataModel);
-        //tables
-        List<TableModel> tables = dataModel.getTables();
-        //columns
-        tables.forEach(i -> {
-            //table escape xml
-            beanAttributeValueTrim(i);
-            List<ColumnModel> columns = i.getColumns();
-            //columns escape xml
-            columns.forEach(BeanUtils::beanAttributeValueTrim);
-        });
-        //if file type is word
-        if (config.getEngineConfig().getFileType().equals(EngineFileType.WORD)) {
-            //escape xml
-            beanAttributeValueEscapeXml(dataModel);
-            //tables
-            tables.forEach(i -> {
-                //table escape xml
-                beanAttributeValueEscapeXml(i);
-                List<ColumnModel> columns = i.getColumns();
-                //columns escape xml
-                columns.forEach(BeanUtils::beanAttributeValueEscapeXml);
-            });
+    protected List<TableModel> getTableModel(DataSource dataSource) {
+        //获取query对象
+        DatabaseQuery query = new DatabaseQueryFactory(dataSource).newInstance();
+        /*查询操作开始*/
+        long start = System.currentTimeMillis();
+        //获取数据库
+        Database database = query.getDataBase();
+        logger.debug("query the database time consuming:{}ms",
+            (System.currentTimeMillis() - start));
+        start = System.currentTimeMillis();
+        //获取全部表
+        List<? extends Table> tables = query.getTables();
+        logger.debug("query the table time consuming:{}ms", (System.currentTimeMillis() - start));
+        //获取全部列
+        start = System.currentTimeMillis();
+        List<? extends Column> columns = query.getTableColumns();
+        logger.debug("query the column time consuming:{}ms", (System.currentTimeMillis() - start));
+        //根据表名获取主键
+        start = System.currentTimeMillis();
+        List<? extends PrimaryKey> primaryKeys = query.getPrimaryKeys();
+        logger.debug("query the primary key time consuming:{}ms",
+            (System.currentTimeMillis() - start));
+        /*查询操作结束*/
+
+        /*处理数据开始*/
+        start = System.currentTimeMillis();
+        List<TableModel> tableModels = new ArrayList<>();
+        tablesCaching.put(database.getDatabase(), tables);
+        for (Table table : tables) {
+            //处理列，表名为key，列名为值
+            columnsCaching.put(table.getTableName(),
+                columns.stream().filter(i -> i.getTableName().equals(table.getTableName()))
+                    .collect(Collectors.toList()));
+            //处理主键，表名为key，主键为值
+            primaryKeysCaching.put(table.getTableName(),
+                primaryKeys.stream().filter(i -> i.getTableName().equals(table.getTableName()))
+                    .collect(Collectors.toList()));
         }
-        //if file type is markdown
-        if (config.getEngineConfig().getFileType().equals(EngineFileType.MD)) {
-            //escape xml
-            beanAttributeValueReplaceBlank(dataModel);
-            //columns
-            tables.forEach(i -> {
-                //table escape xml
-                beanAttributeValueReplaceBlank(i);
-                List<ColumnModel> columns = i.getColumns();
-                //columns escape xml
-                columns.forEach(BeanUtils::beanAttributeValueReplaceBlank);
-            });
+        for (Table table : tables) {
+            /*封装数据开始*/
+            TableModel tableModel = new TableModel();
+            //表名称
+            tableModel.setTableName(table.getTableName());
+            //说明
+            tableModel.setRemarks(table.getRemarks());
+            //添加表
+            tableModels.add(tableModel);
+            //处理列
+            List<ColumnModel> columnModels = new ArrayList<>();
+            //处理主键
+            List<String> keyList = primaryKeysCaching.get(table.getTableName()).stream()
+                .map(PrimaryKey::getColumnName).collect(Collectors.toList());
+            for (Column column : columnsCaching.get(table.getTableName())) {
+                packageColumn(columnModels, keyList, column);
+            }
+            //放入列
+            tableModel.setColumns(columnModels);
         }
+        //过滤表
+        List<TableModel> tableModelList = filterTables(tableModels);
+        //优化数据
+        /*封装数据结束*/
+        logger.debug("encapsulation processing data time consuming:{}ms",
+            (System.currentTimeMillis() - start));
+        return tableModelList;
     }
+
+    /**
+     * packageColumn
+     *
+     * @param columnModels {@link List}
+     * @param keyList      {@link List}
+     * @param column       {@link Column}
+     */
+    private void packageColumn(List<ColumnModel> columnModels, List<String> keyList,
+                               Column column) {
+        ColumnModel columnModel = new ColumnModel();
+        //表中的列的索引（从 1 开始）
+        columnModel.setOrdinalPosition(column.getOrdinalPosition());
+        //列名称
+        columnModel.setColumnName(column.getColumnName());
+        //类型
+        columnModel.setTypeName(column.getTypeName().toLowerCase());
+        //指定列大小
+        columnModel.setColumnSize(column.getColumnSize());
+        //小数位
+        columnModel.setDecimalDigits(
+            StringUtils.defaultString(column.getDecimalDigits(), ZERO_DECIMAL_DIGITS));
+        //可为空
+        columnModel.setNullable(ZERO.equals(column.getNullable()) ? N : Y);
+        //是否主键
+        columnModel.setPrimaryKey(keyList.contains(column.getColumnName()) ? Y : N);
+        //默认值
+        columnModel.setColumnDef(column.getColumnDef());
+        //说明
+        columnModel.setRemarks(column.getRemarks());
+        //放入集合
+        columnModels.add(columnModel);
+    }
+
 }

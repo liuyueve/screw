@@ -15,24 +15,52 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package cn.smallbun.screw.core.process;
+package cn.smallbun.screw.core.metadata.model;
 
-import cn.smallbun.screw.core.metadata.model.DataModel;
-
-import java.io.Serializable;
+import lombok.Data;
 
 /**
- * 构建
- * 通过表结构构建需要的数据bean
- * @author SanLi
- * Created by qinggang.zuo@gmail.com / 2689170096@qq.com on 2020/3/22 21:08
+ * TypeModel
+ *
+ * @author liu·yu
+ * Created by 15952866402@163.com on 2020-08-14
  */
-public interface Process<T> extends Serializable {
+@Data
+public class TypeModel {
+
     /**
-     * 处理
-     *
-     * @return {@link DataModel}
-     * @throws Exception Exception
+     * 数据库字段类型
      */
-    T process() throws Exception;
+    private String fieldType;
+
+    /**
+     * java对象字段类型
+     */
+    private String classType;
+
+    /**
+     * 数据库字段名
+     */
+    private String fieldName;
+
+    /**
+     * java对象字段名
+     */
+    private String className;
+
+    /**
+     * 数据库字段注释
+     */
+    private String remarks;
+
+    /**
+     * get方法名
+     */
+    private String getName;
+
+    /**
+     * set方法名
+     */
+    private String setName;
+
 }
