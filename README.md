@@ -67,27 +67,35 @@
 
 ## 文档截图
 
-+ html
++ **html**
 
-![](https://images.gitee.com/uploads/images/2020/0622/161414_74cd0b68_1407605.png "HTML")
+<p align="center">
+   <img alt="HTML" src="https://images.gitee.com/uploads/images/2020/0622/161414_74cd0b68_1407605.png">
+</p>
+<p align="center">
+   <img alt="screw-logo" src="https://images.gitee.com/uploads/images/2020/0622/161723_6da58c41_1407605.png">
+</p>
 
-![](https://images.gitee.com/uploads/images/2020/0622/161723_6da58c41_1407605.png "HTML")
++ **word**
 
-+ word
+<p align="center">
+   <img alt="word" src="https://images.gitee.com/uploads/images/2020/0625/200946_1dc0717f_1407605.png">
+</p>
 
-![](https://images.gitee.com/uploads/images/2020/0625/200946_1dc0717f_1407605.png "WORD")
++ **markdwon**
 
-+ markdwon
-
-![](https://images.gitee.com/uploads/images/2020/0625/214749_7b15d8bd_1407605.png "MD")
-
-![](https://images.gitee.com/uploads/images/2020/0625/215006_3601e135_1407605.png "MD")
+<p align="center">
+   <img alt="markdwon" src="https://images.gitee.com/uploads/images/2020/0625/214749_7b15d8bd_1407605.png">
+</p>
+<p align="center">
+   <img alt="markdwon" src="https://images.gitee.com/uploads/images/2020/0625/215006_3601e135_1407605.png">
+</p>
 
 ## 使用方式
 
 ### 普通方式
 
-+ 引入依赖
++ **引入依赖**
 
 ```xml
 <dependency>
@@ -97,7 +105,7 @@
  </dependency>
 ```
 
-+ 编写代码
++ **编写代码**
 
 ``` java
 /**
@@ -209,7 +217,7 @@ void documentGeneration() {
                 <!--生成模板-->
                 <produceType>freemarker</produceType>
                 <!--文档名称 为空时:将采用[数据库名称-描述-版本号]作为文档名称-->
-                <fileName>测试文档名称</docName>
+                <fileName>测试文档名称</fileName>
                 <!--描述-->
                 <description>数据库文档生成</description>
                 <!--版本-->
@@ -229,16 +237,27 @@ void documentGeneration() {
     </plugins>
 </build>
 ```
+
 ### 使用文章
 
 + [SpringBoot整合screw生成数据库文档](https://my.oschina.net/mdxlcj/blog/4341399) 
+
++ [还在手动整理数据库文档？试试这个工具](https://mp.weixin.qq.com/s/Bo_U5_cl82hfQ6GmRs2vtA) 
+
++ [实用！一键生成数据库文档，堪称数据库界的Swagger](https://mp.weixin.qq.com/s/nPwFV7DN8Ogg54_crLlP3g) 
+
+### 使用视频
+
++ [使用screw数据库文档生成工具快速生成数据库文档](https://www.bilibili.com/video/av456302504/)
+
++ [微人事一键生成数据库文档！炫！](https://mp.weixin.qq.com/s/rUde6XSGSG0jKuy0Wgf1Mw)
 
 ## 更多支持
 
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <tr>
     <td align="center"><img src="https://images.gitee.com/uploads/images/2020/0622/161414_eaa2819d_1407605.jpeg" width="200" height="200"  alt="WeChat"/> </td>
-    <td align="center"><img src="https://images.gitee.com/uploads/images/2020/0803/221447_e57cfb7f_1407605.png" width="200" height="200"  alt="WeChat"/></td>
+    <td align="center"><img src="https://images.gitee.com/uploads/images/2020/0818/091246_8fb68a19_1407605.png" width="200" height="200"  alt="WeChat"/></td>
     <td align="center"><img src="https://images.gitee.com/uploads/images/2020/0707/191620_9a63fb23_1407605.png" width="200" height="200"  alt="QQ"/></td>
   </tr>
   <tr>
